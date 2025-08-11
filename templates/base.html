@@ -1,13 +1,142 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Congress Tracker</title>
-            </head>
-            <body>
-                <img src="/static/banner1.png" height="100px" style="margin-left: 2%; margin-top: -15px;">
-            </body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Congress Tracker</title>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .flag img {
+        max-height: 20px;
+        height: auto;
+        display: block;
+
+    }
+
+    nav {
+        display: flex;
+        align-items: center;
+        padding: 4px 16px;
+        background-color: #ffffff;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .nav-container {
+        flex: 1;
+        display: flex;
+        justify-content: flex-start;
+        margin-top: 15px;
+        margin-left: 40px; 
+    }
+
+    .logo img {
+        max-height: 80px;
+        height: auto;
+        display: block;
+        margin-top: -12px;
+        margin-bottom: -12px;
+        margin-left: 20%;
+    }
+
+    .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 40px; 
+        margin-top: 5px;
+        padding: 0;
+    }
+
+    .nav-links a {
+        text-decoration: none;
+        color: #333;
+        font-size: 13px;
+        transition: color 0.6s ease;
+    }
+
+    .nav-links a:hover {
+        color: #0a80d4;
+    }
+
+    main {
+        padding: 32px;
+    }
+    .search-form {
+        margin-left: auto; 
+        display: flex;
+        align-items: center;
+    }
+
+    .search-form input[type="text"] {
+        border: 1px solid #ccc;
+        border-radius:12px;
+        padding: 6px 12px;
+        font-size: 13px;
+        outline: none;
+        width: 160px;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-form input[type="text"]:focus {
+        border-color: #0a80d4;
+    }
+
+    .search-form button {
+        margin-left: 8px;
+        margin-right: 5%;
+        background-color: white;
+        border: 2px;
+        border-style: solid;
+        border-color: grey;
+        color: white;
+        padding: 7px 15px;
+        font-size: 13px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: border-color 1.9s ease;
+    }
+
+    .search-form button:hover {
+        border-color: green;
+    }
+</style>
+</head>
+<body>
+
+<nav>
+    <div class="flag">
+        <img src="/static/{{country}}.png" alt="{{country}} Flag">
+    </div>
+    <div class="logo">
+        <a href="/"><img src="/static/banner1.png" alt="Congress Tracker"></a>
+    </div>
+    <div class="nav-container">
+        <ul class="nav-links">
+            <li><a href="#">Legislative Activity</a></li>
+            <li><a href="#">Transparency</a></li>
+            <li><a href="#">Voting</a></li>
+            <li><a href="/about">About</a></li>
+        </ul>
+    </div>
+    <form class="search-form" action="/search" method="GET">
+        <input type="text" name="q" placeholder="country, bill, or keyword" />
+        <button type="submit" aria-label="Search">
+            🔍
+          </button>
+          
+    </form>
+</nav>
+
+
+<main>
+    {% block content %}
+    <h1>Congress Tracker</h1>
+    <p>Site Under Construction!</p>
+    {% endblock %}
+</main> 
+
+</body>
 </html>
-                    

@@ -10,8 +10,12 @@ app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def main():
     if request.method == "GET":
-    	return render_template("base.html")
+    	return render_template("base.html", country="united_states")
 
+@app.route("/about", methods=["GET"])
+def about():
+    if request.method == "GET":
+        return render_template("about.html", country="united_states")
 
 
 
