@@ -4,16 +4,13 @@ from flask import Flask, render_template, request
 app = Flask(__name__)
 
 
-
-
-
 #Routes: Flask routes; nothing too fancy
 
 
 @app.route("/", methods=["GET"])
 def main():
     if request.method == "GET":
-    	return render_template("home.html")
+    	return render_template("base.html")
 
 
 
