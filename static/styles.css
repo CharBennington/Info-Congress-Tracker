@@ -1,0 +1,107 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.flag img {
+    max-height: 20px;
+    height: auto;
+    display: block;
+
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px;
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.nav-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 15px;
+    margin-left: 40px; 
+}
+
+.logo img {
+    max-height: 80px;
+    height: auto;
+    display: block;
+    margin-top: -12px;
+    margin-bottom: -12px;
+    margin-left: 20%;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 40px; 
+    margin-top: 5px;
+    padding: 0;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    transition: color 0.6s ease;
+}
+
+.nav-links a:hover {
+    color: #0a80d4;
+}
+
+main {
+    padding: 32px;
+}
+.search-form {
+    margin-left: auto; 
+    display: flex;
+    align-items: center;
+}
+
+.search-form input[type="text"] {
+    border: 1px solid #ccc;
+    border-radius:12px;
+    padding: 6px 12px;
+    font-size: 13px;
+    outline: none;
+    width: 160px;
+    transition: border-color 0.3s ease;
+}
+
+.search-form input[type="text"]:focus {
+    border-color: #0a80d4;
+}
+
+.search-form button {
+    margin-left: 8px;
+    margin-right: 5%;
+    background-color: white;
+    border: 2px;
+    border-style: solid;
+    border-color: grey;
+    color: white;
+    padding: 7px 15px;
+    font-size: 13px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: border-color 1.9s ease;
+}
+
+.search-form button:hover {
+    border-color: green;
+}
+
+#main {
+    opacity: 1;
+    transition: opacity 0.22s ease;
+  }
+  
+  /* classes only change opacity */
+  .fade-out { opacity: 0 !important; }
+  .fade-in  { opacity: 1 !important; }
+  
