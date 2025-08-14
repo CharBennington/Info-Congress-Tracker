@@ -2,79 +2,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Congress Tracker</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
+<meta charset="UTF-8">
+<title>Congress Tracker</title>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<link rel="stylesheet" href="/static/styles.css">
+<style>
+#main {
+    opacity: 1;
+    transition: opacity 200ms ease;
+}
+#main.fading {
+    opacity: 0;
+}
+
+/* Country Dropdown Styles */
+.flag {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.country-dropdown {
+    position: relative;
+    margin-left: 4px;
+}
+
+.dropdown-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-btn:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.dropdown-arrow {
+    font-size: 10px;
+    color: #666;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-btn.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    width: 300px;
+    max-height: 350px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.dropdown-content.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #f8f9fa;
+}
+
+.country-search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.country-search:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.countries-list {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.country-item {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f8f8f8;
+}
+
+.country-item:hover {
+    background-color: #f8f9fa;
+    color: #667eea;
+}
+
+.country-item.hidden {
+    display: none;
+}
+</style>
 <script>
-    // Load URL with fade-out then htmx ajax swap
-    function loadWithFade(url) {
-      const main = document.getElementById('main');
-      if (!main) {
-        // fallback to normal navigation if #main missing
+function loadWithFade(url, sourceElem) {
+    const main = document.getElementById('main');
+    if (!main) {
         window.location.href = url;
         return;
-      }
-  
-      // start fade-out
-      main.classList.add('fade-out');
-  
-      // wait for fade-out to finish, then request and swap
-      setTimeout(() => {
-        // htmx will replace innerHTML of target
-        htmx.ajax('GET', url, { target: '#main', swap: 'innerHTML', pushUrl: true });
-      }, 180); // match this to your CSS duration (180-220ms)
     }
-  
-    // After htmx swaps new content, fade it in
-    document.addEventListener('htmx:afterSwap', function(evt) {
-      // safe: always target the #main element we control
-      const main = document.getElementById('main');
-      if (!main) return;
-  
-      // remove any lingering fade-out, add fade-in
-      main.classList.remove('fade-out');
-      main.classList.add('fade-in');
-  
-      // remove fade-in class after animation so it can run again next time
-      setTimeout(() => main.classList.remove('fade-in'), 300);
+    
+    // Start fade out animation
+    main.classList.add('fading');
+    
+    // Wait for fade out, then make request
+    setTimeout(() => {
+        htmx.ajax('GET', url, {
+            target: '#main',
+            swap: 'innerHTML',
+            source: sourceElem || null
+        });
+    }, 200); // Match the CSS transition duration
+}
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', function(event) {
+    loadWithFade(window.location.pathname + window.location.search);
+});
+
+// Update URL and fade in after content swap
+document.addEventListener('htmx:afterSwap', function (evt) {
+    const main = document.getElementById('main');
+    if (main && evt.detail.target === main) {
+        // Update URL after successful swap
+        const xhr = evt.detail.xhr;
+        if (xhr && xhr.responseURL) {
+            const url = new URL(xhr.responseURL);
+            window.history.pushState(null, '', url.pathname + url.search);
+        }
+        
+        // Fade in
+        main.classList.remove('fading');
+    }
+});
+
+// Country dropdown functionality
+function toggleCountryDropdown() {
+    const dropdown = document.getElementById('countryDropdown');
+    const btn = document.querySelector('.dropdown-btn');
+    
+    dropdown.classList.toggle('show');
+    btn.classList.toggle('active');
+    
+    // Focus search input when opening
+    if (dropdown.classList.contains('show')) {
+        setTimeout(() => {
+            const searchInput = dropdown.querySelector('.country-search');
+            searchInput.focus();
+        }, 100);
+    }
+}
+
+function filterCountries(searchTerm) {
+    const countries = document.querySelectorAll('.country-item');
+    const searchLower = searchTerm.toLowerCase();
+    
+    countries.forEach(country => {
+        const countryName = country.textContent.toLowerCase();
+        if (countryName.includes(searchLower)) {
+            country.classList.remove('hidden');
+        } else {
+            country.classList.add('hidden');
+        }
     });
+}
+
+function changeCountry(countryCode, countryName) {
+    // Close dropdown
+    const dropdown = document.getElementById('countryDropdown');
+    const btn = document.querySelector('.dropdown-btn');
+    dropdown.classList.remove('show');
+    btn.classList.remove('active');
+    
+    // Update flag image
+    const flagImg = document.getElementById('current-flag');
+    flagImg.src = `/static/${countryCode}.png`;
+    flagImg.alt = `${countryName} Flag`;
+    
+    // Clear search for next time
+    document.querySelector('.country-search').value = '';
+    document.querySelectorAll('.country-item').forEach(item => item.classList.remove('hidden'));
+    
+    // Here you would typically make a request to update the country preference
+    // For example: loadWithFade(`/?country=${countryCode}`);
+    
+    console.log(`Country changed to: ${countryName} (${countryCode})`);
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('countryDropdown');
+    const btn = document.querySelector('.dropdown-btn');
+    const flagContainer = document.querySelector('.flag');
+    
+    if (!flagContainer.contains(event.target)) {
+        dropdown.classList.remove('show');
+        btn.classList.remove('active');
+    }
+});
 </script>
+</head>
 <body>
 <nav>
-    <div class="flag">
-        <img src="/static/{{country}}.png" alt="{{country}} Flag">
+<div class="flag">
+<img src="/static/{{country}}.png" alt="{{country}} Flag" id="current-flag">
+<div class="country-dropdown">
+    <button class="dropdown-btn" onclick="toggleCountryDropdown()">
+        <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-content" id="countryDropdown">
+        <div class="dropdown-header">
+            <input type="text" class="country-search" placeholder="Search countries..." onkeyup="filterCountries(this.value)">
+        </div>
+        <div class="countries-list" id="countriesList">
+            <a href="#" class="country-item" onclick="changeCountry('au', 'Australia')">🇦🇺 Australia</a>
+            <a href="#" class="country-item" onclick="changeCountry('at', 'Austria')">🇦🇹 Austria</a>
+            <a href="#" class="country-item" onclick="changeCountry('be', 'Belgium')">🇧🇪 Belgium</a>
+            <a href="#" class="country-item" onclick="changeCountry('br', 'Brazil')">🇧🇷 Brazil</a>
+            <a href="#" class="country-item" onclick="changeCountry('ca', 'Canada')">🇨🇦 Canada</a>
+            <a href="#" class="country-item" onclick="changeCountry('dk', 'Denmark')">🇩🇰 Denmark</a>
+            <a href="#" class="country-item" onclick="changeCountry('fi', 'Finland')">🇫🇮 Finland</a>
+            <a href="#" class="country-item" onclick="changeCountry('fr', 'France')">🇫🇷 France</a>
+            <a href="#" class="country-item" onclick="changeCountry('de', 'Germany')">🇩🇪 Germany</a>
+            <a href="#" class="country-item" onclick="changeCountry('in', 'India')">🇮🇳 India</a>
+            <a href="#" class="country-item" onclick="changeCountry('ie', 'Ireland')">🇮🇪 Ireland</a>
+            <a href="#" class="country-item" onclick="changeCountry('it', 'Italy')">🇮🇹 Italy</a>
+            <a href="#" class="country-item" onclick="changeCountry('jp', 'Japan')">🇯🇵 Japan</a>
+            <a href="#" class="country-item" onclick="changeCountry('mx', 'Mexico')">🇲🇽 Mexico</a>
+            <a href="#" class="country-item" onclick="changeCountry('nl', 'Netherlands')">🇳🇱 Netherlands</a>
+            <a href="#" class="country-item" onclick="changeCountry('nz', 'New Zealand')">🇳🇿 New Zealand</a>
+            <a href="#" class="country-item" onclick="changeCountry('no', 'Norway')">🇳🇴 Norway</a>
+            <a href="#" class="country-item" onclick="changeCountry('sg', 'Singapore')">🇸🇬 Singapore</a>
+            <a href="#" class="country-item" onclick="changeCountry('za', 'South Africa')">🇿🇦 South Africa</a>
+            <a href="#" class="country-item" onclick="changeCountry('kr', 'South Korea')">🇰🇷 South Korea</a>
+            <a href="#" class="country-item" onclick="changeCountry('es', 'Spain')">🇪🇸 Spain</a>
+            <a href="#" class="country-item" onclick="changeCountry('se', 'Sweden')">🇸🇪 Sweden</a>
+            <a href="#" class="country-item" onclick="changeCountry('ch', 'Switzerland')">🇨🇭 Switzerland</a>
+            <a href="#" class="country-item" onclick="changeCountry('uk', 'United Kingdom')">🇬🇧 United Kingdom</a>
+            <a href="#" class="country-item" onclick="changeCountry('us', 'United States')">🇺🇸 United States</a>
+        </div>
     </div>
-    <div class="logo">
-        <a href="/" onclick="event.preventDefault(); loadWithFade('/');"><img src="/static/banner1.png" alt="Congress Tracker"></a>
-    </div>
-    <div class="nav-container">
-        <ul class="nav-links">
-            <li><a href="#">Legislative Activity</a></li>
-            <li><a href="#">Transparency</a></li>
-            <li><a href="#">Voting</a></li>
-            <li><a href="/about" onclick="event.preventDefault(); loadWithFade('/about');">About</a></li>
-        </ul>
-    </div>
-    <form class="search-form" action="/search" method="GET">
-        <input type="text" name="q" placeholder="country, bill, or keyword" />
-        <button type="submit" aria-label="Search">
-            🔍
-          </button>
-          
-    </form>
+</div>
+</div>
+<div class="logo">
+<a href="/" onclick="event.preventDefault(); loadWithFade(this.href, this);">
+<img src="/static/banner1.png" alt="Congress Tracker">
+</a>
+</div>
+<div class="nav-container">
+<ul class="nav-links">
+<li><a href="#" onclick="event.preventDefault();">Legislative Activity</a></li>
+<li><a href="#" onclick="event.preventDefault();">Transparency</a></li>
+<li><a href="#" onclick="event.preventDefault();">Voting</a></li>
+<li>
+<a href="/about" onclick="event.preventDefault(); loadWithFade(this.href, this);">About</a>
+</li>
+</ul>
+</div>
+<form class="search-form" action="/search" method="GET" 
+      onsubmit="event.preventDefault(); loadWithFade('/search?q=' + encodeURIComponent(this.q.value));">
+<input type="text" name="q" placeholder="country, bill, or keyword" />
+<button type="submit" aria-label="Search">🔍</button>
+</form>
 </nav>
-
-
 <main id="main">
-    {% endif %}
-    
-        {% block content %}{% endblock %}
-    
-    {% if not request.headers.get("HX-Request") %}
-    </main>
+{% endif %}
+{% block content %}{% endblock %}
+{% if not request.headers.get("HX-Request") %}
+</main>
 </body>
 </html>
 {% endif %}
-    
